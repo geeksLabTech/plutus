@@ -10,7 +10,7 @@ Workflow for profiling evaluation time:
 or by using the Plutus Tx plugin option 'dump-plc' if you have a self-contained program.
 3. Run the dumped program with 'uplc --trace-mode LogsWithTimestamps -o logs'
 4. Run 'cat logs | traceToStacks | flamegraph.pl > out.svg'
-5. Open out.svg in your viewer of choiece e.g. firefox.
+5. Open out.svg in your viewer of choice e.g. firefox.
 
 You can also profile the abstract memory and budget units.
 To do so, run 'uplc' with '--trace-mode LogsWithBudgets'.
@@ -21,19 +21,17 @@ control this with the '--column' argument.
 
 module Main where
 
-import qualified Data.ByteString       as BS
-import qualified Data.ByteString.Lazy  as BSL
-import qualified Data.Csv              as CSV
-import           Data.Fixed            (Fixed (MkFixed), Pico)
-import           Data.Foldable         (toList)
-import           Data.List             (intercalate)
-import qualified Data.Text             as T
-import           Data.Time.Clock
-import           Data.Time.Clock.POSIX
-import qualified Data.Vector           as V
+import qualified Data.ByteString      as BS
+import qualified Data.ByteString.Lazy as BSL
+import qualified Data.Csv             as CSV
+import           Data.Fixed           (Fixed (MkFixed), Pico)
+import           Data.Foldable        (toList)
+import           Data.List            (intercalate)
+import qualified Data.Text            as T
+import qualified Data.Vector          as V
 import           Options.Applicative
-import           System.Environment    (getArgs)
-import           Text.Read             (readMaybe)
+import           System.Environment   (getArgs)
+import           Text.Read            (readMaybe)
 
 data StackFrame
   = MkStackFrame
@@ -121,10 +119,10 @@ getStacks = go []
           -- minus the time spent on the function(s) it called.
           MkStackTime (var:fnsEntered) (diffVal - valSpentCalledFun):go updatedStack tl
     go _ ((MkProfileEvent _ Exit _):tl) =
-      error "go: tried to exit but couldn't."
+      error "getStacks; go: tried to exit but couldn't."
     go [] [] = []
     go stacks [] = error $
-      "go: stack " <> show stacks <> " isn't empty but the log is."
+      "getStacks; go: stack " <> show stacks <> " isn't empty but the log is."
 
 column :: Parser Int
 column = option auto
@@ -157,7 +155,7 @@ opts = info ((Opts <$> input <*> column) <**> helper)
 
 main :: IO ()
 main = do
-  Opts inp valIx <- execParser opts
+  Opts inp valIx <- customExecParser (prefs showHelpOnError) opts
   input <- case inp of
       FileInput fp -> BSL.readFile fp
       StdInput     -> BSL.getContents
